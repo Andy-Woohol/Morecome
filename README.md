@@ -6,7 +6,7 @@
 
 ## 실행
 
-- `Morecome.exe` 더블클릭. 설치 불필요, 다른 PC에 exe 파일만 복사해도 동작(Windows 10/11, .NET Framework 4.x 내장).
+- [Releases](https://github.com/Andy-Woohol/Morecome/releases/latest)에서 `Morecome.exe`를 받거나 직접 빌드한 뒤 더블클릭. 설치 불필요, 다른 PC에 exe 파일만 복사해도 동작(Windows 10/11, .NET Framework 4.x 내장).
 - 종료: 미니 창 오른쪽 위 `✕` 또는 우클릭 → 종료.
 - 아이콘: 빌드할 때 같은 폴더에 `notepad.ico`가 있으면 exe 아이콘과 창 아이콘으로 묶임. 이 파일은 저장소에 포함하지 않으므로 원하는 `.ico`를 그 이름으로 넣고 빌드. 없으면 기본 아이콘으로 빌드됨.
 - 창 제목은 "제목 없음 - 메모장"으로 표시됨.
