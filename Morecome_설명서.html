@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Morecome 사용 설명서</title>
+<style>
+:root{
+  --bg:#f6f7f9; --surface:#ffffff; --surface-2:#eef1f5; --text:#1b1f24; --muted:#5b6570;
+  --line:#dfe3e8; --accent:#0a6cd6; --accent-soft:#e3efff; --warn:#b35c00; --warn-soft:#fff2e0;
+  --ok:#1f7a3d; --ok-soft:#e5f5ea; --code:#f0f2f5; --shadow:0 1px 2px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15171a; --surface:#1d2024; --surface-2:#252a30; --text:#e7eaee; --muted:#9aa4af;
+    --line:#323840; --accent:#5aa6ff; --accent-soft:#1c2c42; --warn:#ffb35c; --warn-soft:#3a2a15;
+    --ok:#6fd38f; --ok-soft:#173022; --code:#262b31; --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15171a; --surface:#1d2024; --surface-2:#252a30; --text:#e7eaee; --muted:#9aa4af;
+  --line:#323840; --accent:#5aa6ff; --accent-soft:#1c2c42; --warn:#ffb35c; --warn-soft:#3a2a15;
+  --ok:#6fd38f; --ok-soft:#173022; --code:#262b31; --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:"Segoe UI","Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;font-size:16px;line-height:1.65;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px}
+header.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;gap:16px;height:56px}
+.brand{font-weight:700;font-size:17px;white-space:nowrap}
+.brand small{font-weight:400;color:var(--muted);margin-left:6px}
+nav.toc{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1}
+nav.toc::-webkit-scrollbar{display:none}
+nav.toc a{color:var(--muted);text-decoration:none;font-size:14px;padding:6px 10px;border-radius:6px;white-space:nowrap}
+nav.toc a:hover{background:var(--surface-2);color:var(--text)}
+section{padding:48px 0 8px}
+h1{font-size:34px;line-height:1.25;margin:40px 0 10px;letter-spacing:-.02em}
+h2{font-size:24px;margin:0 0 6px;letter-spacing:-.01em}
+h3{font-size:18px;margin:0 0 6px}
+p.lead{font-size:18px;color:var(--muted);margin:0 0 24px;max-width:720px}
+p.sub{color:var(--muted);margin:0 0 20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.pad{padding:20px}
+kbd,code{font-family:Consolas,"Cascadia Mono",monospace;font-size:.88em}
+code{background:var(--code);padding:2px 6px;border-radius:4px}
+kbd{background:var(--surface);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 7px;white-space:nowrap}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+
+/* ---------- 데모 화면 ---------- */
+.demo-grid{display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start}
+@media (max-width:860px){.demo-grid{grid-template-columns:1fr}}
+.screen{container-type:inline-size;position:relative;aspect-ratio:16/10;border-radius:10px;overflow:hidden;
+  background:linear-gradient(135deg,#3a6ea5 0%,#6b8fc7 45%,#a9bde0 100%);border:1px solid #2b4f78;user-select:none}
+.screen .win{position:absolute;background:#fff;border-radius:calc(8 * 100cqw / 1280);overflow:hidden;
+  box-shadow:0 calc(8*100cqw/1280) calc(30*100cqw/1280) rgba(0,0,0,.35)}
+.screen .win .bar{height:calc(30*100cqw/1280);display:flex;align-items:center;padding:0 calc(10*100cqw/1280);
+  font-size:calc(12*100cqw/1280);color:#333;background:#f3f3f3;border-bottom:1px solid #ddd;gap:calc(8*100cqw/1280)}
+.screen .win .bar .dots{margin-left:auto;letter-spacing:calc(14*100cqw/1280);color:#666}
+.win.browser{left:4%;top:5%;width:70%;height:76%}
+.win.browser svg{display:block;width:100%;height:calc(100% - 30*100cqw/1280)}
+.win.editor{left:34%;top:16%;width:58%;height:66%;background:#1f1f1f}
+.win.editor .bar{background:#2b2b2b;color:#ccc;border-color:#111}
+.win.editor .lines{padding:calc(14*100cqw/1280);display:grid;gap:calc(9*100cqw/1280)}
+.win.editor .lines i{display:block;height:calc(8*100cqw/1280);border-radius:3px;background:#3c3c3c}
+.win.editor .lines i:nth-child(3n){width:70%;background:#2f4f6f}
+.win.editor .lines i:nth-child(4n){width:45%;background:#5a4a2a}
+.win.editor .lines i:nth-child(5n){width:85%}
+.taskbar{position:absolute;left:0;right:0;bottom:0;height:calc(44*100cqw/1280);background:rgba(240,243,248,.88);
+  display:flex;align-items:center;justify-content:center;gap:calc(10*100cqw/1280)}
+.taskbar b{width:calc(24*100cqw/1280);height:calc(24*100cqw/1280);border-radius:calc(5*100cqw/1280);background:#7a8aa0;opacity:.7}
+.taskbar b:first-child{background:#2f7de1;opacity:1}
+
+/* 미니 창(실제 앱과 같은 색) */
+.mini{--w:360;--u:calc(100cqw/1280);position:absolute;width:calc(var(--w) * var(--u) + 2 * var(--u));
+  background:#202020;border:1px solid #0078d7;transition:opacity .18s;cursor:default}
+.mini.notop{border-color:#5a5a5a}
+.mini.adjust{border-color:#ffa000;cursor:move}
+.mini .tbar{height:calc(24*var(--u));background:#2d2d30;display:flex;align-items:center;color:#dcdcdc;
+  font-size:calc(11.5*var(--u))}
+.mini .tbar .t{flex:1;padding-left:calc(6*var(--u));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini .tbar .b{width:calc(26*var(--u));text-align:center;line-height:calc(24*var(--u))}
+.mini .tbar .pin{color:#50a0ff}
+.mini.notop .tbar .pin{color:#c0c0c0}
+.mini .thumb{aspect-ratio:1280/690;overflow:hidden;background:#000}
+.mini .thumb svg{display:block;width:100%;height:100%}
+.mini .grip{position:absolute;width:calc(16*var(--u));height:calc(16*var(--u));display:none;z-index:2}
+.mini .grip[data-c="1"]{left:0;top:0;background:linear-gradient(135deg,rgba(255,160,0,.8) 50%,transparent 50%);cursor:nwse-resize}
+.mini .grip[data-c="2"]{right:0;top:0;background:linear-gradient(225deg,rgba(255,160,0,.8) 50%,transparent 50%);cursor:nesw-resize}
+.mini .grip[data-c="3"]{left:0;bottom:0;background:linear-gradient(45deg,rgba(255,160,0,.8) 50%,transparent 50%);cursor:nesw-resize}
+.mini .grip[data-c="4"]{right:0;bottom:0;background:linear-gradient(315deg,rgba(255,160,0,.8) 50%,transparent 50%);cursor:nwse-resize}
+.mini.adjust .grip{display:block}
+.mini.empty .thumb{display:grid;place-items:center;background:#202020;color:#808080;font-size:calc(12*var(--u));text-align:center}
+
+/* 컨트롤 패널 */
+.panel h3{font-size:15px;margin:0 0 10px}
+.ctl{display:grid;gap:14px}
+.ctl label.sw{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14.5px}
+.ctl input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent)}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{flex:1;border:0;background:var(--surface);color:var(--text);font:inherit;font-size:13.5px;padding:7px 4px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--accent);color:#fff}
+.hint{font-size:13px;color:var(--muted);margin:2px 0 0}
+
+/* ---------- 미니 창 해부도 ---------- */
+.anatomy{display:grid;grid-template-columns:400px 1fr;gap:28px;align-items:center}
+@media (max-width:860px){.anatomy{grid-template-columns:minmax(0,1fr)}}
+.anatomy>*,.menu-grid>*,.demo-grid>*{min-width:0}
+.real{position:relative;width:362px;max-width:calc(100% - 28px);margin:30px 0 8px 28px;container-type:inline-size}
+.real .mini{position:relative;--u:calc(100cqw/362)}
+.callout{position:absolute;width:22px;height:22px;border-radius:50%;background:#e8590c;color:#fff;font-size:12.5px;font-weight:700;
+  display:grid;place-items:center;box-shadow:0 0 0 2px #fff}
+ol.parts{margin:0;padding:0;list-style:none;display:grid;gap:12px}
+ol.parts li{display:grid;grid-template-columns:26px 1fr;gap:10px}
+ol.parts li span.n{width:22px;height:22px;border-radius:50%;background:#e8590c;color:#fff;font-size:12.5px;font-weight:700;display:grid;place-items:center;margin-top:2px}
+.borders{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.borders div{display:flex;align-items:center;gap:8px;font-size:14px;background:var(--surface-2);padding:6px 10px;border-radius:8px}
+.borders i{width:26px;height:16px;border:2px solid;border-radius:2px;background:#202020}
+
+/* ---------- 우클릭 메뉴 (WinForms 모양) ---------- */
+.menu-grid{display:grid;grid-template-columns:540px 1fr;gap:24px;align-items:start}
+.menuzone{position:relative;min-height:340px;padding:4px 4px 12px}
+@media (max-width:960px){
+  .menu-grid{grid-template-columns:minmax(0,1fr)}
+  .menuzone{min-height:0}
+  .cm{max-width:100%}
+  /* 좁은 화면: 하위 메뉴를 옆이 아니라 아래로 펼침 */
+  .cm .it.sub.open{height:auto;flex-wrap:wrap;padding-top:3px}
+  .cm .it.open>.flyout{position:static;width:100%;margin:4px 0 2px;box-shadow:none}
+}
+.cm{position:relative;width:300px;background:#f9f9f9;border:1px solid #a0a0a0;box-shadow:2px 3px 6px rgba(0,0,0,.25);
+  padding:2px;font-family:"Segoe UI","Malgun Gothic",sans-serif;font-size:13px;color:#000}
+.cm .it{position:relative;display:flex;align-items:center;height:24px;padding:0 22px 0 30px;border:1px solid transparent;cursor:default;white-space:nowrap}
+.cm .it::before{content:"";position:absolute;left:0;top:-1px;bottom:-1px;width:24px;background:#f0f0f0}
+.cm .it.chk::after{content:"✓";position:absolute;left:6px;top:2px;font-size:13px}
+.cm .it.chk::before{background:#f0f0f0}
+.cm .it.chk .box{position:absolute;left:2px;top:2px;width:20px;height:18px;border:1px solid #3399ff;background:#cce8ff;z-index:0}
+.cm .it .tx{position:relative;z-index:1}
+.cm .it.sub .arr{position:absolute;right:8px;font-size:9px}
+.cm .it:hover,.cm .it.open{background:#cce8ff;border-color:#99d1ff}
+.cm .it.dis{color:#a0a0a0}
+.cm .it.dis:hover{background:transparent;border-color:transparent}
+.cm .sep{height:1px;background:#d7d7d7;margin:3px 2px 3px 30px}
+.cm .it.sel{outline:2px solid #e8590c;outline-offset:-2px}
+.cm .flyout{display:none;position:absolute;left:100%;top:-3px;width:auto;min-width:200px;z-index:5}
+.cm .it.open>.flyout{display:block}
+.menu-desc{min-height:220px}
+.menu-desc h3{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.menu-desc .path{font-size:13px;color:var(--muted);margin-bottom:8px}
+.menu-desc ul{margin:8px 0 0;padding-left:20px}
+
+/* ---------- 기능 카드 ---------- */
+.features{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.feature h3{display:flex;align-items:center;gap:8px}
+.feature p{margin:0 0 6px}
+.feature .how{font-size:14px;color:var(--muted)}
+.feature .how b{color:var(--text);font-weight:600}
+
+/* ---------- 표 ---------- */
+.tbl{width:100%;border-collapse:collapse;font-size:15px}
+.tbl th,.tbl td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl th{font-size:13px;color:var(--muted);font-weight:600;background:var(--surface-2)}
+.tbl tr:last-child td{border-bottom:0}
+.tblwrap{overflow-x:auto}
+
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){.compare{grid-template-columns:1fr}}
+.compare .card h3{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.compare ul{margin:8px 0 0;padding-left:20px}
+.compare li.pro::marker{content:"＋ ";color:var(--ok)}
+.compare li.con::marker{content:"－ ";color:var(--warn)}
+
+.limits{display:grid;gap:12px}
+.limit{display:grid;grid-template-columns:40px 1fr;gap:12px;align-items:start}
+.limit .ic{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-size:20px;background:var(--warn-soft)}
+.limit p{margin:2px 0 0;color:var(--muted)}
+.limit p b{color:var(--text)}
+
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;counter-reset:s}
+@media (max-width:760px){.steps{grid-template-columns:1fr}}
+.step{position:relative;padding-top:52px}
+.step::before{counter-increment:s;content:counter(s);position:absolute;left:20px;top:18px;width:26px;height:26px;border-radius:50%;
+  background:var(--accent);color:#fff;font-weight:700;font-size:14px;display:grid;place-items:center}
+.step p{margin:0;color:var(--muted)}
+.step h3{margin-bottom:4px}
+
+details{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:0 16px}
+details+details{margin-top:10px}
+summary{cursor:pointer;padding:14px 0;font-weight:600}
+details[open] summary{border-bottom:1px solid var(--line);margin-bottom:12px}
+details > div{padding-bottom:14px}
+footer{color:var(--muted);font-size:13px;padding:40px 0 60px}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="appshot" viewBox="0 0 1280 690">
+      <rect width="1280" height="690" fill="#0f0f0f"/>
+      <rect x="0" y="0" width="1280" height="56" fill="#181818"/>
+      <rect x="24" y="18" width="90" height="20" rx="4" fill="#e33"/>
+      <rect x="420" y="14" width="440" height="28" rx="14" fill="#262626"/>
+      <rect x="24" y="80" width="860" height="484" rx="10" fill="#1d3557"/>
+      <circle cx="454" cy="322" r="48" fill="rgba(255,255,255,.18)"/>
+      <path d="M440 298 L478 322 L440 346 Z" fill="#fff"/>
+      <rect x="24" y="556" width="860" height="8" fill="#3a3a3a"/>
+      <rect x="24" y="556" width="300" height="8" fill="#f00">
+        <animate attributeName="width" values="40;860;40" dur="14s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="24" y="586" width="620" height="22" rx="4" fill="#eaeaea"/>
+      <rect x="24" y="622" width="280" height="16" rx="4" fill="#7a7a7a"/>
+      <g fill="#262626">
+        <rect x="912" y="80" width="344" height="100" rx="8"/>
+        <rect x="912" y="196" width="344" height="100" rx="8"/>
+        <rect x="912" y="312" width="344" height="100" rx="8"/>
+        <rect x="912" y="428" width="344" height="100" rx="8"/>
+        <rect x="912" y="544" width="344" height="100" rx="8"/>
+      </g>
+      <g fill="#3a3a3a">
+        <rect x="920" y="88" width="150" height="84" rx="6"/>
+        <rect x="920" y="204" width="150" height="84" rx="6"/>
+        <rect x="920" y="320" width="150" height="84" rx="6"/>
+        <rect x="920" y="436" width="150" height="84" rx="6"/>
+        <rect x="920" y="552" width="150" height="84" rx="6"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">Morecome<small>사용 설명서</small></div>
+    <nav class="toc">
+      <a href="#start">시작하기</a>
+      <a href="#demo">화면 미리보기</a>
+      <a href="#anatomy">미니 창</a>
+      <a href="#menu">우클릭 메뉴</a>
+      <a href="#input">입력 전달</a>
+      <a href="#mode">클릭 방식</a>
+      <a href="#limits">제한</a>
+      <a href="#faq">문제 해결</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <h1>Morecome (몰컴)</h1>
+  <p class="lead">열려 있는 창 하나를 화면 왼쪽 아래에 작게 띄워 보는 프로그램입니다. 작은 화면 안에서 클릭하고 타이핑하면 원본 창에 그대로 전달되고, 원본 창은 앞으로 튀어나오지 않습니다.</p>
+
+  <!-- 시작하기 -->
+  <section id="start">
+    <h2>시작하기</h2>
+    <p class="sub">설치가 필요 없습니다. Windows 10·11이면 exe 파일 하나로 실행됩니다.</p>
+    <div class="steps">
+      <div class="card pad step"><h3>실행</h3><p><code>Morecome.exe</code>를 더블클릭합니다. 화면 왼쪽 아래에 빈 미니 창이 뜹니다.</p></div>
+      <div class="card pad step"><h3>창 고르기</h3><p>미니 창을 <b>우클릭</b> → <b>창 선택</b> → 보고 싶은 창을 고릅니다.</p></div>
+      <div class="card pad step"><h3>바로 사용</h3><p>미니 창 안을 클릭하고 타이핑하면 원본 창에 전달됩니다. 원본은 다른 창 뒤에 있어도 됩니다.</p></div>
+    </div>
+  </section>
+
+  <!-- 데모 -->
+  <section id="demo">
+    <h2>화면 미리보기</h2>
+    <p class="sub">실제 앱과 같은 색과 비율로 그렸습니다. 오른쪽 설정을 바꾸거나 미니 창 위에 마우스를 올려 보세요.</p>
+    <div class="demo-grid">
+      <div class="screen" id="screen">
+        <div class="win browser">
+          <div class="bar">● 동영상 - Chrome<span class="dots">— ▢ ✕</span></div>
+          <svg viewBox="0 0 1280 690" preserveAspectRatio="none"><use href="#appshot"/></svg>
+        </div>
+        <div class="win editor">
+          <div class="bar">보고서.docx - 작업 중<span class="dots">— ▢ ✕</span></div>
+          <div class="lines"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="mini" id="demoMini">
+          <div class="tbar"><span class="t">동영상 - Chrome</span><span class="b pin" id="demoPin">▲</span><span class="b">✕</span></div>
+          <div class="thumb"><svg viewBox="0 0 1280 690" preserveAspectRatio="none"><use href="#appshot"/></svg></div>
+          <div class="grip" data-c="1"></div><div class="grip" data-c="2"></div><div class="grip" data-c="3"></div><div class="grip" data-c="4"></div>
+        </div>
+        <div class="taskbar"><b></b><b></b><b></b><b></b><b></b></div>
+      </div>
+
+      <div class="card pad panel">
+        <h3>설정 바꿔 보기</h3>
+        <div class="ctl">
+          <label class="sw"><input type="checkbox" id="cTop" checked> 항상 위</label>
+          <div>
+            <div class="seg" id="cSize">
+              <button data-i="0">작게</button><button data-i="1" class="on">보통</button><button data-i="2">크게</button>
+            </div>
+            <p class="hint">240 / 360 / 480 px. 높이는 원본 비율에 맞춰 자동.</p>
+          </div>
+          <label class="sw"><input type="checkbox" id="cAdjust"> 드래그로 크기·위치 조절</label>
+          <p class="hint" id="adjustHint" style="display:none;margin-top:-8px">미니 창을 끌어 옮기고, 네 모서리의 주황 손잡이 중 아무거나 끌어 크기를 바꿔 보세요.</p>
+          <div>
+            <div class="seg" id="cOpacity">
+              <button data-v="100" class="on">100%</button><button data-v="85">85%</button><button data-v="70">70%</button><button data-v="50">50%</button>
+            </div>
+            <p class="hint">불투명도</p>
+          </div>
+          <label class="sw"><input type="checkbox" id="cBoss"> Boss Nearby</label>
+          <p class="hint" id="bossHint" style="display:none;margin-top:-8px">평소 5%로 거의 안 보입니다. 미니 창 위에 마우스를 올리면 80%가 됩니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 해부도 -->
+  <section id="anatomy">
+    <h2>미니 창 구성</h2>
+    <p class="sub">"보통" 크기(가로 360px)로 그렸습니다. 화면이 좁으면 줄어듭니다.</p>
+    <div class="card pad anatomy">
+      <div class="real">
+        <div class="mini">
+          <div class="tbar"><span class="t">동영상 - Chrome</span><span class="b pin">▲</span><span class="b">✕</span></div>
+          <div class="thumb"><svg viewBox="0 0 1280 690" preserveAspectRatio="none"><use href="#appshot"/></svg></div>
+        </div>
+        <span class="callout" style="left:30px;top:-28px">1</span>
+        <span class="callout" style="right:28px;top:-28px">2</span>
+        <span class="callout" style="right:1px;top:-28px">3</span>
+        <span class="callout" style="left:62%;top:46%">4</span>
+        <span class="callout" style="left:-28px;bottom:30px">5</span>
+      </div>
+      <ol class="parts">
+        <li><span class="n">1</span><div><b>제목</b><br><span style="color:var(--muted)">지금 보고 있는 원본 창의 제목입니다. 창이 없으면 "우클릭 → 창 선택"이 보입니다.</span></div></li>
+        <li><span class="n">2</span><div><b>▲ 항상 위</b><br><span style="color:var(--muted)">누를 때마다 켜고 끕니다. 켜지면 파란 ▲, 꺼지면 흰 △입니다.</span></div></li>
+        <li><span class="n">3</span><div><b>✕ 종료</b><br><span style="color:var(--muted)">Morecome을 끕니다. 원본 창은 그대로 남습니다.</span></div></li>
+        <li><span class="n">4</span><div><b>썸네일 영역</b><br><span style="color:var(--muted)">원본 창이 실시간으로 보입니다. 클릭·타이핑·휠이 원본으로 전달되고, 우클릭하면 메뉴가 열립니다.</span></div></li>
+        <li><span class="n">5</span><div><b>테두리</b><br><span style="color:var(--muted)">색으로 현재 상태를 알려 줍니다.</span></div></li>
+      </ol>
+    </div>
+    <div class="borders">
+      <div><i style="border-color:#0078d7"></i>파랑: 항상 위 켜짐</div>
+      <div><i style="border-color:#5a5a5a"></i>회색: 항상 위 꺼짐</div>
+      <div><i style="border-color:#ffa000"></i>주황: 크기·위치 조절 중</div>
+    </div>
+  </section>
+
+  <!-- 메뉴 -->
+  <section id="menu">
+    <h2>우클릭 메뉴</h2>
+    <p class="sub">미니 창을 우클릭하면 나오는 메뉴입니다. 항목을 클릭하면 옆(좁은 화면에서는 아래)에 설명이 나옵니다. 체크 표시는 처음 실행했을 때의 기본값입니다.</p>
+    <div class="menu-grid">
+      <div class="menuzone">
+        <div class="cm" id="cm">
+          <div class="it sub" data-k="windows"><span class="tx">창 선택</span><span class="arr">▶</span>
+            <div class="cm flyout">
+              <div class="it chk" data-k="windows"><span class="box"></span><span class="tx">동영상 - Chrome</span></div>
+              <div class="it" data-k="windows"><span class="tx">보고서.docx - 작업 중</span></div>
+              <div class="it" data-k="windows"><span class="tx">파일 탐색기</span></div>
+            </div>
+          </div>
+          <div class="it" data-k="detach"><span class="tx">창 연결 해제</span></div>
+          <div class="sep"></div>
+          <div class="it chk" data-k="top"><span class="box"></span><span class="tx">항상 위</span></div>
+          <div class="it sub" data-k="size"><span class="tx">크기</span><span class="arr">▶</span>
+            <div class="cm flyout">
+              <div class="it" data-k="size"><span class="tx">작게 (240px)</span></div>
+              <div class="it chk" data-k="size"><span class="box"></span><span class="tx">보통 (360px)</span></div>
+              <div class="it" data-k="size"><span class="tx">크게 (480px)</span></div>
+              <div class="sep"></div>
+              <div class="it" data-k="adjust"><span class="tx">드래그로 크기·위치 조절</span></div>
+            </div>
+          </div>
+          <div class="it sub" data-k="opacity"><span class="tx">불투명도</span><span class="arr">▶</span>
+            <div class="cm flyout">
+              <div class="it chk" data-k="opacity"><span class="box"></span><span class="tx">100%</span></div>
+              <div class="it" data-k="opacity"><span class="tx">85%</span></div>
+              <div class="it" data-k="opacity"><span class="tx">70%</span></div>
+              <div class="it" data-k="opacity"><span class="tx">50%</span></div>
+            </div>
+          </div>
+          <div class="it" data-k="boss"><span class="tx">Boss Nearby (평소 5%, 마우스 올리면 80%)</span></div>
+          <div class="it chk" data-k="unmax"><span class="box"></span><span class="tx">선택한 창 최대화 풀기 (크기는 그대로)</span></div>
+          <div class="it sub" data-k="mode"><span class="tx">클릭 방식</span><span class="arr">▶</span>
+            <div class="cm flyout">
+              <div class="it chk" data-k="quiet"><span class="box"></span><span class="tx">원본 창 안 띄우고 전달 (조용히)</span></div>
+              <div class="it" data-k="activate"><span class="tx">원본 창 앞으로 가져와서 클릭</span></div>
+              <div class="it chk dis" data-k="restore"><span class="box"></span><span class="tx">&nbsp;&nbsp;&nbsp;&nbsp;클릭 후 마우스 커서 되돌리기</span></div>
+            </div>
+          </div>
+          <div class="sep"></div>
+          <div class="it" data-k="exit"><span class="tx">종료</span></div>
+        </div>
+      </div>
+      <div class="card pad menu-desc" id="menuDesc"></div>
+    </div>
+  </section>
+
+  <!-- 입력 전달 -->
+  <section id="input">
+    <h2>미니 창에서 할 수 있는 입력</h2>
+    <p class="sub">썸네일 영역에서 한 입력이 원본 창의 같은 지점으로 전달됩니다.</p>
+    <div class="card tblwrap">
+      <table class="tbl">
+        <thead><tr><th style="width:24%">입력</th><th>동작</th><th style="width:18%">전달</th></tr></thead>
+        <tbody>
+          <tr><td>좌클릭 · 더블클릭 · 드래그</td><td>원본 창의 같은 지점을 클릭합니다.</td><td><span class="pill ok">됨</span></td></tr>
+          <tr><td>키보드 입력</td><td>썸네일을 한 번 클릭한 뒤 입력하면, 마지막으로 클릭한 칸에 글자가 들어갑니다.</td><td><span class="pill ok">됨</span></td></tr>
+          <tr><td>마우스 휠</td><td>원본을 스크롤합니다. 크롬은 다른 창에 가려진 자리에서는 휠을 무시합니다. 그때는 키보드로 스크롤하세요.</td><td><span class="pill warn">크롬 예외</span></td></tr>
+          <tr><td>우클릭</td><td>Morecome 메뉴를 엽니다. 원본에는 전달되지 않습니다.</td><td><span class="pill">메뉴</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="margin-top:24px">키보드로 스크롤하기</h3>
+    <p class="sub" style="margin-bottom:12px">휠이 안 먹는 곳에서 씁니다. 썸네일을 한 번 클릭한 뒤 아래 키를 누르세요.</p>
+    <div class="card tblwrap">
+      <table class="tbl">
+        <tbody>
+          <tr><td style="width:40%"><kbd>↓</kbd> <kbd>↑</kbd></td><td>조금씩 내리기 / 올리기</td></tr>
+          <tr><td><kbd>Page Down</kbd> <kbd>Page Up</kbd></td><td>한 화면씩 내리기 / 올리기</td></tr>
+          <tr><td><kbd>Space</kbd> <kbd>Shift</kbd>+<kbd>Space</kbd></td><td>웹페이지에서 한 화면씩 내리기 / 올리기</td></tr>
+          <tr><td><kbd>Home</kbd> <kbd>End</kbd></td><td>맨 위 / 맨 아래</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="hint" style="margin-top:10px">유튜브 영상에 초점이 있으면 <kbd>Space</kbd>는 일시정지, <kbd>←</kbd> <kbd>→</kbd>는 5초 이동, <kbd>↑</kbd> <kbd>↓</kbd>는 볼륨입니다. 페이지를 내리려면 영상 바깥(댓글 쪽)을 먼저 클릭하세요.</p>
+  </section>
+
+  <!-- 클릭 방식 -->
+  <section id="mode">
+    <h2>클릭 방식 두 가지</h2>
+    <p class="sub">우클릭 → 클릭 방식에서 고릅니다. 기본은 "조용히"입니다.</p>
+    <div class="compare">
+      <div class="card pad">
+        <h3>원본 창 안 띄우고 전달 <span class="pill">기본</span></h3>
+        <p style="margin:0;color:var(--muted)">원본 창에 입력 신호만 보냅니다. 원본은 제자리에 가만히 있습니다.</p>
+        <ul>
+          <li class="pro">작업 중인 창이 바뀌지 않습니다.</li>
+          <li class="pro">드래그와 타이핑도 전달됩니다.</li>
+          <li class="con">게임, 일부 스토어 앱, 관리자 권한 앱은 무시할 수 있습니다.</li>
+          <li class="con"><kbd>Ctrl</kbd>·<kbd>Shift</kbd> 조합키는 안 통할 수 있습니다.</li>
+        </ul>
+      </div>
+      <div class="card pad">
+        <h3>원본 창 앞으로 가져와서 클릭</h3>
+        <p style="margin:0;color:var(--muted)">원본 창을 앞으로 꺼내고 마우스를 실제로 움직여 클릭합니다.</p>
+        <ul>
+          <li class="pro">거의 모든 프로그램에서 확실히 됩니다.</li>
+          <li class="pro">크롬이 가려져 있어도 휠이 먹습니다.</li>
+          <li class="con">클릭할 때마다 원본 창이 앞으로 나옵니다.</li>
+          <li class="con">"클릭 후 마우스 커서 되돌리기"를 켜면 커서는 원래 자리로 돌아옵니다.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:12px">조용한 방식이 안 먹는 프로그램이면 두 번째 방식으로 바꾸세요.</p>
+  </section>
+
+  <!-- 제한 -->
+  <section id="limits">
+    <h2>알아 둘 제한</h2>
+    <p class="sub">Windows나 다른 프로그램의 동작 때문에 생기는 제한입니다.</p>
+    <div class="card pad limits">
+      <div class="limit"><div class="ic">▁</div><div><b>원본 창을 최소화하면 안 보입니다</b>
+        <p>Windows는 최소화된 창의 화면을 그리지 않습니다. 최소화 대신 <b>다른 창 뒤에 두세요</b>.</p></div></div>
+      <div class="limit"><div class="ic">▶</div><div><b>크롬 동영상이 멈춰 보일 수 있습니다</b>
+        <p>크롬은 최대화된 채 완전히 가려지면 화면 그리기를 멈춥니다. 기본으로 켜진 <b>선택한 창 최대화 풀기</b>가 이를 막아 줍니다. 그래도 멈추면 아래 문제 해결을 보세요.</p></div></div>
+      <div class="limit"><div class="ic">⇕</div><div><b>크롬이 가려져 있으면 휠이 안 먹습니다</b>
+        <p>크롬은 다른 창 위에서 굴린 휠을 무시합니다. <b>키보드로 스크롤</b>하거나 "앞으로 가져와서 클릭" 방식을 쓰세요.</p></div></div>
+      <div class="limit"><div class="ic">🛡</div><div><b>관리자 권한 프로그램에는 입력이 안 갑니다</b>
+        <p>Windows 보안 정책입니다. 그런 프로그램을 쓰려면 <b>Morecome도 관리자 권한으로</b> 실행하세요.</p></div></div>
+    </div>
+  </section>
+
+  <!-- 문제 해결 -->
+  <section id="faq">
+    <h2>문제 해결</h2>
+    <p class="sub">자주 겪는 상황과 해결 방법입니다.</p>
+    <details>
+      <summary>미니 창이 검은 화면만 보여요</summary>
+      <div>원본 창이 최소화되어 있는지 확인하세요. 작업 표시줄에서 원본을 한 번 열어 둔 뒤 다른 창 뒤로 보내면 다시 보입니다.</div>
+    </details>
+    <details>
+      <summary>크롬 유튜브가 가려지면 멈춰요</summary>
+      <div>
+        <p style="margin-top:0">순서대로 시도하세요.</p>
+        <ol style="margin:0;padding-left:20px">
+          <li>우클릭 메뉴의 <b>선택한 창 최대화 풀기</b>가 켜져 있는지 확인하고, 창을 다시 선택합니다.</li>
+          <li>크롬 창이 화면에 한 귀퉁이라도 보이게 둡니다. 두 번째 모니터에 두는 것도 방법입니다.</li>
+          <li>크롬 주소창에 <code>chrome://flags</code>를 열고 "Calculate window occlusion on Windows"를 Disabled로 바꾼 뒤 재시작합니다.</li>
+          <li>유튜브 영상에서 우클릭을 두 번 해 <b>화면 속 화면</b>을 켜고, 그 작은 창을 Morecome으로 봅니다.</li>
+        </ol>
+      </div>
+    </details>
+    <details>
+      <summary>클릭해도 원본이 반응하지 않아요</summary>
+      <div>우클릭 → 클릭 방식 → <b>원본 창 앞으로 가져와서 클릭</b>으로 바꿔 보세요. 그래도 안 되면 원본이 관리자 권한으로 실행 중인지 확인하세요.</div>
+    </details>
+    <details>
+      <summary>크기 조절 모드에서 클릭이 안 돼요</summary>
+      <div>조절 모드(주황 테두리)에서는 클릭이 원본으로 가지 않습니다. 조절이 끝나면 우클릭 → 크기 → <b>드래그로 크기·위치 조절</b>의 체크를 풀어 주세요.</div>
+    </details>
+    <details>
+      <summary>설정은 어디에 저장되나요?</summary>
+      <div>
+        <p style="margin-top:0">항상 위, 크기, 위치, 불투명도, Boss Nearby, 최대화 풀기, 클릭 방식, 마지막으로 본 창이 저장됩니다. 다음에 실행하면 같은 제목의 창이 열려 있을 때 자동으로 다시 연결합니다.</p>
+        <code>%APPDATA%\Morecome\settings.txt</code>
+      </div>
+    </details>
+    <details>
+      <summary>개발자 참고: 빌드와 동작 원리</summary>
+      <div>
+        <ul style="margin:0;padding-left:20px">
+          <li>빌드는 폴더의 <code>build.cmd</code>를 실행합니다. Windows에 내장된 C# 컴파일러를 쓰므로 Visual Studio가 필요 없습니다. 같은 폴더에 <code>notepad.ico</code>가 있으면 아이콘으로 묶고, 없으면 기본 아이콘으로 빌드합니다.</li>
+          <li>썸네일은 Windows의 DWM 썸네일 기능으로 그립니다. 화면 캡처가 아니라서 CPU를 거의 쓰지 않습니다.</li>
+          <li>조용한 방식은 원본 창 안의 해당 지점에 마우스·키보드 메시지를 보냅니다.</li>
+          <li>작업 표시줄에는 메모장 아이콘과 "제목 없음 - 메모장" 제목으로 표시됩니다.</li>
+          <li><code>%APPDATA%\Morecome\debug.on</code> 파일을 만들어 두면 전달 좌표가 <code>debug.log</code>에 기록됩니다.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <footer>Morecome 사용 설명서 · 원본 문서는 같은 폴더의 README.md입니다.</footer>
+</main>
+
+<script>
+(function(){
+  // ---------- 데모 화면 ----------
+  var screen = document.getElementById('screen');
+  var mini = document.getElementById('demoMini');
+  var pin = document.getElementById('demoPin');
+  var REF = 1280, W = [240,360,480], GAP = 8, TASK = 44;
+  var st = { top:true, size:1, adjust:false, opacity:100, boss:false, hover:false, custom:null };
+
+  function unit(){ return screen.clientWidth / REF; }
+  function place(){
+    var u = unit();
+    var w = st.custom ? st.custom.w : W[st.size];
+    mini.style.setProperty('--w', w);
+    if (st.custom){
+      mini.style.left = (st.custom.x * u) + 'px';
+      mini.style.top = (st.custom.y * u) + 'px';
+    } else {
+      mini.style.left = (GAP * u) + 'px';
+      mini.style.top = (screen.clientHeight - mini.offsetHeight - (TASK + GAP) * u) + 'px';
+    }
+  }
+  function render(){
+    mini.classList.toggle('notop', !st.top);
+    mini.classList.toggle('adjust', st.adjust);
+    pin.textContent = st.top ? '▲' : '△';
+    var op = st.boss ? (st.hover ? 80 : 5) : st.opacity;
+    mini.style.opacity = op / 100;
+    document.getElementById('adjustHint').style.display = st.adjust ? 'block' : 'none';
+    document.getElementById('bossHint').style.display = st.boss ? 'block' : 'none';
+    place();
+  }
+  document.getElementById('cTop').onchange = function(){ st.top = this.checked; render(); };
+  document.getElementById('cAdjust').onchange = function(){ st.adjust = this.checked; render(); };
+  document.getElementById('cBoss').onchange = function(){ st.boss = this.checked; render(); };
+  function seg(id, fn){
+    var box = document.getElementById(id);
+    box.addEventListener('click', function(e){
+      var b = e.target.closest('button'); if (!b) return;
+      [].forEach.call(box.children, function(x){ x.classList.toggle('on', x === b); });
+      fn(b); render();
+    });
+  }
+  seg('cSize', function(b){ st.size = +b.dataset.i; st.custom = null; });
+  seg('cOpacity', function(b){ st.opacity = +b.dataset.v; });
+  mini.addEventListener('mouseenter', function(){ st.hover = true; render(); });
+  mini.addEventListener('mouseleave', function(){ if (!drag) { st.hover = false; render(); } });
+
+  // 조절 모드: 끌어서 이동, 손잡이로 비율 유지 크기 조절
+  var drag = null;
+  mini.addEventListener('pointerdown', function(e){
+    if (!st.adjust) return;
+    var u = unit(), r = mini.getBoundingClientRect(), s = screen.getBoundingClientRect();
+    var cur = { x:(r.left - s.left)/u, y:(r.top - s.top)/u, w: st.custom ? st.custom.w : W[st.size], wpx:r.width/u, hpx:r.height/u };
+    var c = +(e.target.dataset && e.target.dataset.c || 0);
+    drag = { kind: c ? 'resize' : 'move', corner:c, sx:e.clientX, sy:e.clientY, start:cur };
+    st.custom = { x:cur.x, y:cur.y, w:cur.w };
+    mini.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  mini.addEventListener('pointermove', function(e){
+    if (!drag) return;
+    var u = unit(), dx = (e.clientX - drag.sx)/u, dy = (e.clientY - drag.sy)/u;
+    if (drag.kind === 'move'){ st.custom.x = drag.start.x + dx; st.custom.y = drag.start.y + dy; }
+    else {
+      // 잡은 모서리의 반대편을 고정, 가로·세로 중 더 많이 움직인 쪽을 따름
+      var left = drag.corner === 1 || drag.corner === 3, top = drag.corner === 1 || drag.corner === 2;
+      var aspect = (drag.start.hpx - 24 - 1) / drag.start.w;
+      var byX = drag.start.w + (left ? -dx : dx), byY = drag.start.w + (top ? -dy : dy) / aspect;
+      var w = Math.abs(byX - drag.start.w) >= Math.abs(byY - drag.start.w) ? byX : byY;
+      w = Math.max(120, Math.min(900, w));
+      var nh = 24 + 1 + w * aspect;
+      st.custom.w = w;
+      st.custom.x = left ? drag.start.x + drag.start.wpx - (w + 2) : drag.start.x;
+      st.custom.y = top ? drag.start.y + drag.start.hpx - nh : drag.start.y;
+    }
+    var maxX = REF - (st.custom.w + 2), maxY = screen.clientHeight/u - mini.offsetHeight/u;
+    st.custom.x = Math.max(0, Math.min(maxX, st.custom.x));
+    st.custom.y = Math.max(0, Math.min(maxY, st.custom.y));
+    render();
+  });
+  mini.addEventListener('pointerup', function(){ drag = null; });
+  window.addEventListener('resize', place);
+  render();
+
+  // ---------- 우클릭 메뉴 ----------
+  var D = {
+    windows:{t:'창 선택', p:'우클릭 → 창 선택', b:'지금 열려 있는 창 목록이 나옵니다. 고른 창이 미니 창에 실시간으로 보입니다.',
+      l:['체크 표시가 지금 보고 있는 창입니다.','마지막으로 본 창은 다음 실행 때 자동으로 다시 연결됩니다.']},
+    detach:{t:'창 연결 해제', p:'우클릭 → 창 연결 해제', b:'미니 창을 빈 상태로 돌립니다. 원본 창에는 아무 영향이 없습니다.'},
+    top:{t:'항상 위', tag:'기본 켜짐', p:'우클릭 → 항상 위 (또는 제목줄 ▲)', b:'미니 창이 다른 모든 창보다 위에 떠 있게 합니다.',
+      l:['켜지면 테두리가 파랑, 꺼지면 회색입니다.']},
+    size:{t:'크기', tag:'기본 보통', p:'우클릭 → 크기', b:'미니 창의 가로 폭을 240 / 360 / 480 px 중에서 고릅니다. 높이는 원본 창 비율에 맞춰 자동으로 정해집니다.',
+      l:['프리셋을 고르면 화면 왼쪽 아래 구석으로 돌아갑니다.']},
+    adjust:{t:'드래그로 크기·위치 조절', p:'우클릭 → 크기 → 드래그로 크기·위치 조절', b:'켜면 테두리가 주황색으로 바뀌고 마우스로 미니 창을 움직일 수 있습니다.',
+      l:['창 안이나 제목줄을 끌면 위치가 바뀝니다.','네 모서리 중 아무 손잡이나 끌면 반대편 모서리를 고정한 채, 비율을 유지하며 크기가 바뀝니다.','조절 중에는 클릭이 원본으로 가지 않습니다. 끝나면 체크를 풀어 주세요.','조절한 크기와 위치는 저장됩니다.']},
+    opacity:{t:'불투명도', tag:'기본 100%', p:'우클릭 → 불투명도', b:'미니 창을 100 / 85 / 70 / 50 % 중 하나로 투명하게 합니다.'},
+    boss:{t:'Boss Nearby', p:'우클릭 → Boss Nearby', b:'평소에는 불투명도 5%로 거의 보이지 않게 둡니다. 마우스를 올리면 80%로 올라오고, 마우스가 떠나면 다시 5%가 됩니다.',
+      l:['켜져 있는 동안은 불투명도 메뉴 값 대신 이 규칙이 적용됩니다.','메뉴를 열어 둔 동안에는 80%를 유지합니다.']},
+    unmax:{t:'선택한 창 최대화 풀기', tag:'기본 켜짐', p:'우클릭 → 선택한 창 최대화 풀기 (크기는 그대로)', b:'창을 고를 때 그 창이 최대화되어 있으면 최대화를 풀고, 최대화 때와 똑같은 크기와 위치로 맞춥니다. 겉보기에는 거의 달라지지 않습니다.',
+      l:['원본 창을 앞으로 꺼내지 않습니다.','크롬처럼 최대화 상태에서 가려지면 그리기를 멈추는 프로그램을 위한 기능입니다.']},
+    mode:{t:'클릭 방식', p:'우클릭 → 클릭 방식', b:'미니 창의 클릭을 원본에 어떻게 보낼지 고릅니다. 아래 "클릭 방식 두 가지"에 자세한 비교가 있습니다.'},
+    quiet:{t:'원본 창 안 띄우고 전달 (조용히)', tag:'기본', p:'우클릭 → 클릭 방식', b:'원본 창에 입력 신호만 보냅니다. 원본은 앞으로 나오지 않습니다.'},
+    activate:{t:'원본 창 앞으로 가져와서 클릭', p:'우클릭 → 클릭 방식', b:'원본 창을 앞으로 꺼내고 마우스를 실제로 움직여 클릭합니다. 조용한 방식이 안 먹는 프로그램에 씁니다.'},
+    restore:{t:'클릭 후 마우스 커서 되돌리기', tag:'기본 켜짐', p:'우클릭 → 클릭 방식', b:'"앞으로 가져와서 클릭" 방식에서만 쓸 수 있습니다. 클릭한 뒤 마우스 커서를 원래 자리로 돌려놓습니다.'},
+    exit:{t:'종료', p:'우클릭 → 종료 (또는 제목줄 ✕)', b:'Morecome을 끕니다. 설정은 저장되어 다음 실행 때 그대로 복원됩니다.'}
+  };
+  var desc = document.getElementById('menuDesc');
+  function show(k, el){
+    var d = D[k]; if (!d) return;
+    var h = '<div class="path">' + d.p + '</div><h3>' + d.t + (d.tag ? ' <span class="pill">' + d.tag + '</span>' : '') + '</h3><p style="margin:0">' + d.b + '</p>';
+    if (d.l) h += '<ul>' + d.l.map(function(x){ return '<li>' + x + '</li>'; }).join('') + '</ul>';
+    desc.innerHTML = h;
+    [].forEach.call(document.querySelectorAll('#cm .it.sel'), function(x){ x.classList.remove('sel'); });
+    if (el) el.classList.add('sel');
+  }
+  var cm = document.getElementById('cm');
+  // 하위 메뉴 열기: 마우스 올림(데스크톱) + 클릭(터치)
+  function openSub(it){
+    var parent = it.parentElement;
+    [].forEach.call(parent.children, function(x){ if (x !== it) x.classList.remove('open'); });
+    if (it.classList.contains('sub')) it.classList.add('open');
+  }
+  [].forEach.call(cm.querySelectorAll('.it'), function(it){
+    it.addEventListener('mouseenter', function(){ openSub(it); });
+    it.addEventListener('click', function(e){ e.stopPropagation(); openSub(it); show(it.dataset.k, it); });
+  });
+  show('windows', cm.querySelector('.it'));
+})();
+</script>
+</body>
+</html>
