@@ -78,7 +78,7 @@ kbd{background:var(--surface);border:1px solid var(--line);border-bottom-width:2
 
 /* 미니 창(실제 앱과 같은 색) */
 .mini{--w:360;--u:calc(100cqw/1280);position:absolute;width:calc(var(--w) * var(--u) + 2 * var(--u));
-  background:#202020;border:1px solid #0078d7;transition:opacity .18s;cursor:default}
+  background:#202020;border:1px solid #0078d7;transition:opacity .25s;cursor:default}
 .mini.notop{border-color:#5a5a5a}
 .mini.adjust{border-color:#ffa000;cursor:move}
 .mini .tbar{height:calc(24*var(--u));background:#2d2d30;display:flex;align-items:center;color:#dcdcdc;
@@ -307,7 +307,7 @@ footer{color:var(--muted);font-size:13px;padding:40px 0 60px}
             <p class="hint">불투명도</p>
           </div>
           <label class="sw"><input type="checkbox" id="cBoss"> Boss Nearby</label>
-          <p class="hint" id="bossHint" style="display:none;margin-top:-8px">평소 5%로 거의 안 보입니다. 미니 창 위에 마우스를 올리면 80%가 됩니다.</p>
+          <p class="hint" id="bossHint" style="display:none;margin-top:-8px">평소 5%로 거의 안 보입니다. 미니 창 위에 마우스를 올리고 1초 머물면 80%로 서서히 밝아집니다. 지연 시간과 두 불투명도는 메뉴에서 바꿀 수 있습니다.</p>
         </div>
       </div>
     </div>
@@ -378,7 +378,37 @@ footer{color:var(--muted);font-size:13px;padding:40px 0 60px}
               <div class="it" data-k="opacity"><span class="tx">50%</span></div>
             </div>
           </div>
-          <div class="it" data-k="boss"><span class="tx">Boss Nearby (평소 5%, 마우스 올리면 80%)</span></div>
+          <div class="it sub" data-k="boss"><span class="tx">Boss Nearby</span><span class="arr">▶</span>
+            <div class="cm flyout">
+              <div class="it" data-k="boss"><span class="tx">켜기 (평소 흐리게, 마우스를 올려 두면 밝게)</span></div>
+              <div class="sep"></div>
+              <div class="it sub" data-k="boss"><span class="tx">반응 지연</span><span class="arr">▶</span>
+                <div class="cm flyout">
+                  <div class="it" data-k="boss"><span class="tx">즉시</span></div>
+                  <div class="it" data-k="boss"><span class="tx">0.5초</span></div>
+                  <div class="it chk" data-k="boss"><span class="box"></span><span class="tx">1초</span></div>
+                  <div class="it" data-k="boss"><span class="tx">2초</span></div>
+                  <div class="it" data-k="boss"><span class="tx">3초</span></div>
+                </div>
+              </div>
+              <div class="it sub" data-k="boss"><span class="tx">평소 불투명도</span><span class="arr">▶</span>
+                <div class="cm flyout">
+                  <div class="it" data-k="boss"><span class="tx">3%</span></div>
+                  <div class="it chk" data-k="boss"><span class="box"></span><span class="tx">5%</span></div>
+                  <div class="it" data-k="boss"><span class="tx">10%</span></div>
+                  <div class="it" data-k="boss"><span class="tx">20%</span></div>
+                </div>
+              </div>
+              <div class="it sub" data-k="boss"><span class="tx">마우스 올렸을 때</span><span class="arr">▶</span>
+                <div class="cm flyout">
+                  <div class="it" data-k="boss"><span class="tx">50%</span></div>
+                  <div class="it" data-k="boss"><span class="tx">70%</span></div>
+                  <div class="it chk" data-k="boss"><span class="box"></span><span class="tx">80%</span></div>
+                  <div class="it" data-k="boss"><span class="tx">100%</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="it chk" data-k="unmax"><span class="box"></span><span class="tx">선택한 창 최대화 풀기 (크기는 그대로)</span></div>
           <div class="it sub" data-k="mode"><span class="tx">클릭 방식</span><span class="arr">▶</span>
             <div class="cm flyout">
@@ -502,7 +532,7 @@ footer{color:var(--muted);font-size:13px;padding:40px 0 60px}
     <details>
       <summary>설정은 어디에 저장되나요?</summary>
       <div>
-        <p style="margin-top:0">항상 위, 크기, 위치, 불투명도, Boss Nearby, 최대화 풀기, 클릭 방식, 마지막으로 본 창이 저장됩니다. 다음에 실행하면 같은 제목의 창이 열려 있을 때 자동으로 다시 연결합니다.</p>
+        <p style="margin-top:0">항상 위, 크기, 위치, 불투명도, Boss Nearby와 그 지연·불투명도, 최대화 풀기, 클릭 방식, 마지막으로 본 창이 저장됩니다. 다음에 실행하면 같은 제목의 창이 열려 있을 때 자동으로 다시 연결합니다.</p>
         <code>%APPDATA%\Morecome\settings.txt</code>
       </div>
     </details>
@@ -568,8 +598,10 @@ footer{color:var(--muted);font-size:13px;padding:40px 0 60px}
   }
   seg('cSize', function(b){ st.size = +b.dataset.i; st.custom = null; });
   seg('cOpacity', function(b){ st.opacity = +b.dataset.v; });
-  mini.addEventListener('mouseenter', function(){ st.hover = true; render(); });
-  mini.addEventListener('mouseleave', function(){ if (!drag) { st.hover = false; render(); } });
+  // 실제 프로그램처럼 1초 머물러야 밝아지고, 떠나면 바로 어두워짐
+  var bossDelay = null;
+  mini.addEventListener('mouseenter', function(){ clearTimeout(bossDelay); bossDelay = setTimeout(function(){ st.hover = true; render(); }, 1000); });
+  mini.addEventListener('mouseleave', function(){ clearTimeout(bossDelay); if (!drag) { st.hover = false; render(); } });
 
   // 조절 모드: 끌어서 이동, 손잡이로 비율 유지 크기 조절
   var drag = null;
@@ -619,8 +651,8 @@ footer{color:var(--muted);font-size:13px;padding:40px 0 60px}
     adjust:{t:'드래그로 크기·위치 조절', p:'우클릭 → 크기 → 드래그로 크기·위치 조절', b:'켜면 테두리가 주황색으로 바뀌고 마우스로 미니 창을 움직일 수 있습니다.',
       l:['창 안이나 제목줄을 끌면 위치가 바뀝니다.','네 모서리 중 아무 손잡이나 끌면 반대편 모서리를 고정한 채, 비율을 유지하며 크기가 바뀝니다.','조절 중에는 클릭이 원본으로 가지 않습니다. 끝나면 체크를 풀어 주세요.','조절한 크기와 위치는 저장됩니다.']},
     opacity:{t:'불투명도', tag:'기본 100%', p:'우클릭 → 불투명도', b:'미니 창을 100 / 85 / 70 / 50 % 중 하나로 투명하게 합니다.'},
-    boss:{t:'Boss Nearby', p:'우클릭 → Boss Nearby', b:'평소에는 불투명도 5%로 거의 보이지 않게 둡니다. 마우스를 올리면 80%로 올라오고, 마우스가 떠나면 다시 5%가 됩니다.',
-      l:['켜져 있는 동안은 불투명도 메뉴 값 대신 이 규칙이 적용됩니다.','메뉴를 열어 둔 동안에는 80%를 유지합니다.']},
+    boss:{t:'Boss Nearby', p:'우클릭 → Boss Nearby → 켜기', b:'평소에는 불투명도 5%로 거의 보이지 않게 둡니다. 마우스를 올리고 1초 머물면 80%로 서서히 밝아지고, 마우스가 떠나면 다시 5%로 서서히 돌아갑니다.',
+      l:['지연은 마우스가 미니 창을 스쳐 지나갈 때 밝아지지 않게 하기 위한 것입니다. 반응 지연(즉시 / 0.5 / 1 / 2 / 3초), 평소 불투명도(3 / 5 / 10 / 20 %), 마우스 올렸을 때(50 / 70 / 80 / 100 %)를 같은 메뉴에서 고릅니다.','켜져 있는 동안은 불투명도 메뉴 값 대신 이 규칙이 적용됩니다.','메뉴를 열어 두거나 드래그 조절 중에는 지연 없이 바로 밝아집니다.']},
     unmax:{t:'선택한 창 최대화 풀기', tag:'기본 켜짐', p:'우클릭 → 선택한 창 최대화 풀기 (크기는 그대로)', b:'창을 고를 때 그 창이 최대화되어 있으면 최대화를 풀고, 최대화 때와 똑같은 크기와 위치로 맞춥니다. 겉보기에는 거의 달라지지 않습니다.',
       l:['원본 창을 앞으로 꺼내지 않습니다.','크롬처럼 최대화 상태에서 가려지면 그리기를 멈추는 프로그램을 위한 기능입니다.']},
     mode:{t:'클릭 방식', p:'우클릭 → 클릭 방식', b:'미니 창의 클릭을 원본에 어떻게 보낼지 고릅니다. 아래 "클릭 방식 두 가지"에 자세한 비교가 있습니다.'},

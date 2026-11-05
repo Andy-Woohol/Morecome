@@ -130,7 +130,8 @@ namespace Morecome
         public bool TopMost = true; public int SizeIndex = 1; public int Opacity = 100;
         public bool Quiet = true; public bool RestoreCursor = true; public string LastTitle = "";
         public bool Adjust = false; public int CustomW = 0, CustomX = 0, CustomBottom = 0;
-        public bool Boss = false; public bool Unmax = true;
+        public bool Boss = false; public int BossDelay = 1000, BossIdle = 5, BossHover = 80;   // Boss Nearby: 반응 지연(ms), 평소·올렸을 때 불투명도(%)
+        public bool Unmax = true;
         public static string Dir { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Morecome"); } }
         static string PathOf() { return Path.Combine(Dir, "settings.txt"); }
         public static Settings Load()
@@ -159,6 +160,9 @@ namespace Morecome
                         case "customx": int.TryParse(v, out s.CustomX); break;
                         case "custombottom": int.TryParse(v, out s.CustomBottom); break;
                         case "boss": s.Boss = v == "1"; break;
+                        case "bossdelay": int.TryParse(v, out s.BossDelay); break;
+                        case "bossidle": int.TryParse(v, out s.BossIdle); break;
+                        case "bosshover": int.TryParse(v, out s.BossHover); break;
                         case "unmax": s.Unmax = v == "1"; break;
                     }
                 }
@@ -166,6 +170,10 @@ namespace Morecome
             catch { }
             if (s.SizeIndex < 0 || s.SizeIndex > 2) s.SizeIndex = 1;
             if (s.Opacity < 30 || s.Opacity > 100) s.Opacity = 100;
+            if (s.BossDelay < 0 || s.BossDelay > 10000) s.BossDelay = 1000;
+            if (s.BossIdle < 3 || s.BossIdle > 50) s.BossIdle = 5;          // 0%면 마우스가 창을 통과해 올려도 반응이 없으므로 3% 이상
+            if (s.BossHover < 30 || s.BossHover > 100) s.BossHover = 80;
+            if (s.BossHover <= s.BossIdle) { s.BossIdle = 5; s.BossHover = 80; }
             return s;
         }
         public void Save()
@@ -177,7 +185,8 @@ namespace Morecome
                     "topmost=" + (TopMost ? "1" : "0") + "\r\nsize=" + SizeIndex + "\r\nopacity=" + Opacity +
                     "\r\nquiet=" + (Quiet ? "1" : "0") + "\r\nrestorecursor=" + (RestoreCursor ? "1" : "0") +
                     "\r\nlasttitle=" + LastTitle + "\r\nadjust=" + (Adjust ? "1" : "0") + "\r\ncustomw=" + CustomW +
-                    "\r\ncustomx=" + CustomX + "\r\ncustombottom=" + CustomBottom + "\r\nboss=" + (Boss ? "1" : "0") + "\r\nunmax=" + (Unmax ? "1" : "0") + "\r\n", Encoding.UTF8);
+                    "\r\ncustomx=" + CustomX + "\r\ncustombottom=" + CustomBottom + "\r\nboss=" + (Boss ? "1" : "0") + "\r\nbossdelay=" + BossDelay + "\r\nbossidle=" + BossIdle + "\r\nbosshover=" + BossHover +
+                    "\r\nunmax=" + (Unmax ? "1" : "0") + "\r\n", Encoding.UTF8);
             }
             catch { }
         }
@@ -204,8 +213,11 @@ namespace Morecome
 
         Panel titleBar; Label titleLabel, pinLabel, closeLabel;
         ContextMenuStrip menu; ToolStripMenuItem miWindows, miTop, miSize, miOpacity, miQuiet, miActivate, miRestore, miBoss, miUnmax;
-        bool hover; int curOpacity = 100;   // Boss Nearby: 마우스가 창 위에 있는지, 현재 적용 중인 불투명도
-        Timer tick, restoreTimer;
+        bool hover; int hoverSince;         // Boss Nearby: 마우스가 창 위에 있는지, 올라온 시각(TickCount)
+        int curOpacity = 100;               // 지금 화면에 적용된 불투명도(페이드 중간값 포함)
+        int targetOpacity = 100, fadeFrom = 100, fadeStart;   // 페이드 목표값·시작값·시작 시각
+        const int FadeMs = 250;
+        Timer tick, restoreTimer, fade;
         Point? cursorBackup;
         bool passThrough;
         bool debug;
@@ -279,20 +291,47 @@ namespace Morecome
 
             tick = new Timer { Interval = 150 }; tick.Tick += delegate { Poll(); }; tick.Start();
             restoreTimer = new Timer { Interval = 160 }; restoreTimer.Tick += delegate { EndForward(); };
+            fade = new Timer { Interval = 15 }; fade.Tick += delegate { FadeStep(); };
 
             RefreshPin();
-            ApplyOpacity();
+            ApplyOpacity(true);
             Relayout();
         }
 
-        // Boss Nearby가 켜져 있으면 평소 5%, 마우스를 올리면 80%. 아니면 설정한 불투명도.
-        void ApplyOpacity()
+        // 목표 불투명도를 정하고 그쪽으로 페이드. Boss Nearby가 켜져 있으면 평소 BossIdle,
+        // 마우스가 지연 시간만큼 머물면 BossHover. 아니면 설정한 불투명도.
+        void ApplyOpacity() { ApplyOpacity(false); }
+        void ApplyOpacity(bool instant)
         {
-            int op = cfg.Boss ? (hover ? 80 : 5) : cfg.Opacity;
+            int op = cfg.Boss ? (BossLit() ? cfg.BossHover : cfg.BossIdle) : cfg.Opacity;
+            if (op == targetOpacity && !instant) return;
+            targetOpacity = op;
+            if (instant) { fade.Stop(); SetShown(op); return; }
+            fadeFrom = curOpacity; fadeStart = Environment.TickCount;
+            fade.Start();
+        }
+
+        void FadeStep()
+        {
+            double t = (Environment.TickCount - fadeStart) / (double)FadeMs;
+            if (t >= 1) { fade.Stop(); SetShown(targetOpacity); return; }
+            SetShown((int)Math.Round(fadeFrom + (targetOpacity - fadeFrom) * t));
+        }
+
+        void SetShown(int op)
+        {
             if (op == curOpacity) return;
             curOpacity = op;
             Opacity = op / 100.0;
             UpdateThumb();
+        }
+
+        // 메뉴가 열려 있거나 드래그 중이면 바로 밝게, 아니면 마우스가 지연 시간만큼 머물렀을 때
+        bool BossLit()
+        {
+            if (!hover) return false;
+            if (menu.Visible || drag != DragKind.None) return true;
+            return Environment.TickCount - hoverSince >= cfg.BossDelay;
         }
 
         Label MakeButton(string text, string tip)
@@ -335,8 +374,13 @@ namespace Morecome
                 it.Click += delegate { cfg.Opacity = op; cfg.Save(); foreach (ToolStripMenuItem m in miOpacity.DropDownItems) m.Checked = false; it.Checked = true; ApplyOpacity(); };
                 miOpacity.DropDownItems.Add(it);
             }
-            miBoss = new ToolStripMenuItem("Boss Nearby (평소 5%, 마우스 올리면 80%)") { CheckOnClick = true, Checked = cfg.Boss };
-            miBoss.CheckedChanged += delegate { cfg.Boss = miBoss.Checked; cfg.Save(); ApplyOpacity(); };
+            miBoss = new ToolStripMenuItem("Boss Nearby");
+            var miBossOn = new ToolStripMenuItem("켜기 (평소 흐리게, 마우스를 올려 두면 밝게)") { CheckOnClick = true, Checked = cfg.Boss };
+            miBossOn.CheckedChanged += delegate { cfg.Boss = miBossOn.Checked; cfg.Save(); ApplyOpacity(); };
+            var miDelay = Radio("반응 지연", new[] { 0, 500, 1000, 2000, 3000 }, DelayLabel, cfg.BossDelay, delegate(int v) { cfg.BossDelay = v; });
+            var miIdle = Radio("평소 불투명도", new[] { 3, 5, 10, 20 }, Pct, cfg.BossIdle, delegate(int v) { cfg.BossIdle = v; });
+            var miLit = Radio("마우스 올렸을 때", new[] { 50, 70, 80, 100 }, Pct, cfg.BossHover, delegate(int v) { cfg.BossHover = v; });
+            miBoss.DropDownItems.AddRange(new ToolStripItem[] { miBossOn, new ToolStripSeparator(), miDelay, miIdle, miLit });
             miUnmax = new ToolStripMenuItem("선택한 창 최대화 풀기 (크기는 그대로)") { CheckOnClick = true, Checked = cfg.Unmax };
             miUnmax.CheckedChanged += delegate { cfg.Unmax = miUnmax.Checked; cfg.Save(); if (cfg.Unmax) Native.UnmaximizeKeepSize(src); };
             var miMode = new ToolStripMenuItem("클릭 방식");
@@ -351,6 +395,22 @@ namespace Morecome
             var miExit = new ToolStripMenuItem("종료"); miExit.Click += delegate { Close(); };
             menu.Items.AddRange(new ToolStripItem[] { miWindows, miDetach, new ToolStripSeparator(), miTop, miSize, miOpacity, miBoss, miUnmax, miMode, new ToolStripSeparator(), miExit });
         }
+
+        // 값 하나만 체크되는 하위 메뉴. 고르면 저장하고 불투명도를 다시 적용.
+        ToolStripMenuItem Radio(string title, int[] values, Func<int, string> label, int current, Action<int> set)
+        {
+            var root = new ToolStripMenuItem(title);
+            foreach (int v in values)
+            {
+                int val = v;
+                var it = new ToolStripMenuItem(label(v)) { Checked = v == current };
+                it.Click += delegate { set(val); cfg.Save(); foreach (ToolStripMenuItem m in root.DropDownItems) m.Checked = false; it.Checked = true; ApplyOpacity(); };
+                root.DropDownItems.Add(it);
+            }
+            return root;
+        }
+        static string Pct(int v) { return v + "%"; }
+        static string DelayLabel(int ms) { return ms == 0 ? "즉시" : (ms / 1000.0).ToString("0.#") + "초"; }
 
         void RefreshSizeChecks()
         {
@@ -528,7 +588,8 @@ namespace Morecome
             if (cfg.Boss)
             {
                 bool h = Bounds.Contains(Cursor.Position) || menu.Visible || drag != DragKind.None;
-                if (h != hover) { hover = h; ApplyOpacity(); }
+                if (h != hover) { hover = h; hoverSince = Environment.TickCount; }
+                ApplyOpacity();   // 지연 시간이 지나는 순간을 잡기 위해 매번 호출(목표가 같으면 바로 반환)
             }
             if (src == IntPtr.Zero) { titleLabel.Text = "우클릭 → 창 선택"; return; }
             if (!Native.IsWindow(src)) { Attach(IntPtr.Zero); return; }
